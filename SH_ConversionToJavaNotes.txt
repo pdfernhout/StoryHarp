@@ -1,0 +1,270 @@
+StoryHarp Conversion to Java notes
+
+" public" to "public"; indentation error on conversion?
+
+Changing TColor to Color (implies all color handling changes)
+http://java.sun.com/javase/6/docs/api/java/awt/Color.html
+http://java.sun.com/products/jfc/tsc/articles/swing2d/index.html
+
+Changing TRect to Rectangle
+http://www.delphibasics.co.uk/RTL.asp?Name=TRect
+
+Changing TPoint to Point
+http://java.sun.com/j2se/1.4.2/docs/api/java/awt/Point.html
+
+For methods with a return value, the type is not declared for "result"
+
+Use Java enums if needed (1.5 or later)
+http://java.sun.com/j2se/1.5.0/docs/guide/language/enums.html
+
+Change callbacks using functions to use interfaces:
+http://www.javaworld.com/javaworld/javatips/jw-javatip10.html
+
+Convert TList into Vector (synchronized) or ArrayList.
+
+The access for .Items for TList may be removed.
+
+Delphi 2 byte int is a Java short.
+Delphi 4 byte long is a Java int.
+Delphy 8 byte Int64 is a Java long.
+http://mc-computing.com/languages/DataTypes.htm
+
+May be inconsistent capatilization in Delphi, and may conflict with changed Java types, like Point instead of point.
+
+.Count to .size()
+.Items[i] to .get(i)
+[i] to .get(i)
+
+abs to Math.abs
+
+StrToInt to Integer.parseInt
+
+Delphi string is 1 based; Java string is 0 based
+Delphi string is mutable; Java string is immutable
+
+Delphi TPoint converted to Java Point will need to be initialized; same for other similar things.
+
+Conversion issue: Java classes were not declared public
+
+Conversion issue: Switch block missing final brace
+
+Conversion issue: Dropped out array type declaration for TSVariableDisplayOptions that was an array of booleans
+
+Conversion issue: May be making casts look like functions instead of casts?
+
+When using a constructor that in Delphi had a method name, Java has no special name, just parameters for the constructor.
+
+Delphi compares strings with s1 = s2 and s1 != s2 while Java needs to compare with the equals function s1.equals(s2)
+
+Conversion issue: with Java having types, it is better for variable initialization to be to null rather than a new object.
+
+Can optimize "<= something - 1" to "< something"
+
+Conversion issue: Rect.left, Rect.right = swapIntegers(Rect.left, Rect.right);
+
+TRect has top, bottom, left, right accessors, but Rectangle has x, y, width, height
+
+Delphi initialization is different from Java. Strings are empty instead of null. So may need to add constructor.
+Records need to be constructed too as they would exist in Delphi without construction, but regular objects start as null;
+
+Conversion Issue: When declaring the fields in a class, they should be initialized if string?
+
+File conversion needs to be done by hand to stuff like FileInputStream or FileReader or BufferedReader for readLine. Need to put in newlines as write statements.
+UNRESOLVED.readln(SessionFile, variableNameRead);
+becomes:
+variableNameRead = inputStream.readLine();
+
+trim(string) becomes string.trim()
+
+while(!UNRESOLVED.eof(SessionFile)) is tricky; need to look for null when reading, usually while(true) and a break statement
+
+    	BufferedReader inputStream;
+		try {
+			inputStream = new BufferedReader(new FileReader(sessionFileName));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		// For Windows compatability for now for testing identical output
+		public String newLine = "\r\n";
+		// String newLine = "\n";
+
+    	FileWriter outputStream;
+		try {
+			outputStream = new FileWriter(sessionFileName);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+    public void writeln(FileWriter writer, String line) throws IOException {
+    	writer.write(line);
+    	writer.write(newLine);
+    }
+    
+Conversion issue: no need to add delphi_compatability import as probably never used.
+
+Form conversion issue, for using scroll pane so it shows up in the visual editor:
+        this.PictureScrollBox = new JScrollPane();
+        this.PictureScrollBox.setBounds(0, 0, 237, 217);
+        this.PictureScrollBox.setViewportView(PictureImage);
+this.world = usworld.TWorld().Create();
+to:
+this.world = new TWorld();
+
+Gotcha: Delphi Rect initalizer uses right, bottom but Java Rectangle uses width, height
+http://www.delphibasics.co.uk/RTL.asp?Name=Rect
+
+
+Reading INI files in Java, can use Properties if not trying to preserve information, but Java property files not easily hman readable?
+http://www.java-tips.org/java-se-tips/java.util/how-to-use-an-ini-file.html
+But no bracket sections:
+http://www.rgagnon.com/javadetails/java-0024.html
+So, can use ini4j (Apache 2):
+http://ini4j.sourceforge.net/license.html
+
+Conversion issue: Has "pass" in empty functions.
+
+Conversion issue: no types for local variable declarations
+
+IntToStr becomes String.valueOf
+
+search of delphi_compatability at start and do several fixes
+
+Conversion issue: for arrays, still changing to Python systax with range
+
+In Delphi, can have \ slashes in strings if the next character is not an escapable one, but Java gives an error.
+
+When a Delphi string operation of "Pos(prefix, string) == 1" can use string.startsWith(prefix)
+
+Could often change [i] to .get(i); except might miss assignments x[i] = y. also string character indexing needs .charAt (but compiler would catch that). 
+Also, there are some genuine arrays in Java. Maybe variable by variable?
+
+NOTE: For applets to run just as a class in a directory, they must be built without any package, at the top level of the source tree.
+
+Lists: Delete to remove; IndexOf to indexOf;
+
+Cleanup at end: To find string comparisons that were not fixed, should search for the comparisons:
+ == "
+and:
+ != "
+
+Conversion Issue: should be converting characters to 'c' instead of "c"
+
+Can use regular expressions for some changes, even across multiple files in file search, example:
+This finds words maybe joined by periods that are inside a trim(something.else)
+trim\(([\w\.]+)\)
+This replaces what is inside with something.else.trim()
+\1.trim\(\)
+
+len\(([\w\.]+)\)
+with:
+\1.length\(\)
+
+Form Conversion issue: this.button does not get you actionPerformed in Visual Editor, need plain button reference without this.
+
+Need to think about dialog versus window, JDialog vs. JFrame.
+
+Form conversion issue: think about making the fields start with lower case. And maybe put the field type at end?
+
+TStringList to Vector<String>
+
+Because of Delphi 1-based indexing in strings, and Java 0-based indexing:
+ UNRESOLVED.pos("music ", soundFile) == 1
+ becomes:
+ soundFile.indexOf("music") == 0
+
+The expression:
+UNRESOLVED.Copy(soundFile, len("music ") + 1, soundFile.length())
+becomes:
+soundFile.substring("music ".length())
+
+Form conversion issue: Should leave the T in the name when convert, like TSomethingWindow
+Form conversion ERROR: Somehow using the global variable name of a window instead of class name with the T
+
+Changing .Visible = something; and .visible = something; to .setVisible(something)
+\.Visible = (.+);
+with:
+.setVisible(\1);
+(watch out for variables that might start with Visible when changing references to the variable to isVisible().)
+
+Same for .Enabled and .enabled
+
+Same for .Checked and .checked; becomes .setSelected()
+
+Same for .Text and .text becomes .setText()
+
+.caption = to .setText()  (Except for windows, when it is .setTitle(), but compiler would catch that as they are rare).
+
+.Invalidate() to .repaint()
+Change .refresh to .repaint too (or remove if duplicates with invalidate).
+
+Delphi graphics uses separate colors for a brush (inside) and a line (border) and a font;
+Swing uses just one color and multiple calls.
+
+Switch .X and .Y to .x and .y, looking for ".X " ".X;" ".X)" ".X," and the same for Y (mostly for Points).
+Careful as some commands or other variables may start with .Xsomething like .Xor
+
+Gotcha: Delphi may pass in somethings as copies of a record but if you modify them locally in Java you are modifying and object;
+Rectangle or Point may have these sorts of unexpected changes.
+
+Rectangle: left to x and top to y (careful for topXYZ variables and methods, so use space, semicolon, parent, comma variants).
+right and bottom are problematical. In Java, rectangles have a width and height, but that is relative, not absolute.
+These need to be checked one by one.
+
+Gotcha: Delphi has a splitter line that is between two panels; Java uses a splitter pane that holds the two panels;
+hiding the splitter in Java would have different implications and is probably not what you want to do.
+
+this.ActiveControl == XYZ 
+becomes:
+XYZ.isFocusOwner()
+
+this.ActiveControl = XYZ
+becomes:
+XYZ.requestFocusInWindow()
+
+this.ActiveControl 
+becomes:
+this.getFocusOwner()
+
+(delphi_compatability.TShiftStateEnum.ssCtrl in Shift)
+event.isControlDown()
+
+(delphi_compatability.TShiftStateEnum.ssShift in Shift)
+event.isShiftDown()
+
+Making DefaultListModels for lists and saving them in fields to modify.
+
+change list ItemIndex = and retrieve property to .setSelectedIndex() and .getSelectedIndex() using regular expressions.
+
+Conversion issue: need to replace "as" with cast
+
+After replace .Text = with .setText(\1)
+replace:
+\.Text([;\), ])
+with:
+.getText()\1
+
+Notion: Every list box or combo box should have a nameOfListBoxModel variable, so can change nameOfListBox.Items to nameOfListBoxModel
+IMPROVEMENT: GUI Convertor should make this field and assign it automatically.
+
+for (i = 0; i <= TSDomain.domain.world.rules.size() - 1; i++) {
+to:
+for (i = 0; i < TSDomain.domain.world.rules.size(); i++) {
+
+GUI Conversion improvement: add for stubs to get eclipse blue bars in margin:  // TODO Auto-generated method stub
+
+To switch lots of labels and other things with absolute positioning or resize methods to to MigLayout:
+Using the Java Beans view, make sure the items are listed in the order they flow in the panel from top to bottom and left to right.
+Then, add the MigLayout command strings (usually: wrap for labels, and split images, and growx, and maybe pushx for edits, and grow, push for JLists). 
+Then set the layout manager to new MigLayout(). And close and open the file.
+If get a null pointer exception, can be because the Property view is stuck somehow. 
+This will not be fixed even by restarting eclipse. 
+Not sure of the best way to fix it, but setting the layout to FlowLayout, closing and opening the page,
+and then setting back to MigLayout. You might also try setting to miglayout and closing right away and save during close.
+Add <html> to the beginning of the text of long labels you want automatically wrapped.
+Then you can delete all the setBounds() calls for each component.
+Still a little unsure about image box sizes (may need to use wmin SIZE and hmin SIZE in miglayout string).
+gapleft 30 and gapbottom 30 might be useful too, for spacing.
+In geneneral, some formatting indentation and spacing will be lost and you will have to readd it if it is importang.
